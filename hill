@@ -1,0 +1,54 @@
+#RSA Key Generator
+#this generator uses 4096 bit private key length
+# I do plan on personally editing this to 
+from Crypto.PublicKey import RSA
+nkey = RSA.generate(4096, e=65537)
+pvkey = nkey.exportKey("PEM")
+pukey = nkey.publickey().exportKey("PEM")
+print(pvkey)
+fd = open("pvkey.pem", "wb")
+fd.write(pvkey)
+fd.close()
+
+print(pukey)
+fd = open("pukey.pem", "wb")
+fd.write(pukey)
+fd.close()
+#Encryption Using the RSA key we generated
+from Crypto.Publickey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+import zlib
+import base64
+
+def encrypt_blob(blob, pkey):
+  rsakey = RSA.importKey(pkey)
+  rsakey = PKCS1_OAEP.new(rsakey)
+  blob = zlib.compress(blob)
+  chunk_size = 470
+  offset = 0
+  end_loop = False
+  encrypted = ""
+  
+    while not end_loop:
+    chunk = blob[offset:offset + chunk_size]
+    
+    #So the first line below this is AMAZING to me (because if you know basic Python3 it makes complete sense)
+    #So the len() funct "shows" the length of a string, %  returns the remander after dividing 2 variables,
+    #and finally the != is the opposite of ==, simply put, if == means "is.." then != means "is not..."
+    
+    if len(chunk) % chunk_size != 0:
+    end_loop = True
+    # += adds to the variable and later assigns the same
+    chunk += " " * (chunk_size - len(chunk))
+    encrypted += rsakey.encrypt(chunk)
+    offset += chunk_size
+    #Okay so the line below simply encodes the file using base64, which is an alphabet, correctly called Base64 standard alphabet
+    
+    return base64.b64encode(encrypted)
+    fd = open("pukey.pem", "rb")
+    pukey = fd.read()
+    fd.close
+    
+    fd = open("image.jpg", "rb")
+    unencrypted_blob = fd.read()
+    https://medium.com/@ismailakkila/black-hat-python-encrypt-and-decrypt-with-rsa-cryptography-bd6df84d65bc
